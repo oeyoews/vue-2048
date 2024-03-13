@@ -179,7 +179,7 @@ let app = createApp({
           score: args.score,
           ease: Power0.easeNone,
           onUpdate: function () {
-            Vue.set(self.bestScore, self.size, Math.floor(bs.score));
+            self.bestScore[this.size] = Math.floor(bs.score);
           },
         });
       }
@@ -483,9 +483,9 @@ app.component('game2048', {
         doGameMove(m);
       };
       listenKeysOn.addEventListener('keydown', h);
-      this.$once('ended', function () {
-        listenKeysOn.removeEventListener('keydown', h);
-      });
+      // this.$once('ended', function () {
+      //   listenKeysOn.removeEventListener('keydown', h);
+      // });
     },
     runTouchControl: function (doGameMove) {
       var sw = createSwipeListener(function (m) {
@@ -493,9 +493,9 @@ app.component('game2048', {
       });
       var el = this.$el;
       sw.attach(el);
-      this.$once('ended', function () {
-        sw.detach(el);
-      });
+      // this.$once('ended', function () {
+      //   sw.detach(el);
+      // });
     },
     createGameMove: function (game) {
       var self = this;
