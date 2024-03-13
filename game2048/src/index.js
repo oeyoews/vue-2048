@@ -3,6 +3,31 @@ const { createApp } = window.Vue;
 var defBoardSizePx = 420;
 var defSize = 4;
 
+var fontSizeCoefs = [1, 1, 0.8, 0.65, 0.5, 0.4, 0.35, 0.32];
+var backColors = [];
+backColors[2] = '#87E293';
+backColors[4] = '#87E273';
+backColors[8] = '#eecf40';
+backColors[16] = '#ffaa4f';
+backColors[64] = '#9ebbee';
+backColors[32] = '#6bcae2';
+backColors[128] = 'white';
+
+var colors = [];
+colors[2] = 'white';
+colors[4] = 'white';
+colors[8] = 'white';
+colors[16] = 'white';
+colors[32] = 'white';
+colors[64] = 'white';
+colors[128] = '#2c3e50';
+
+var keyMap = {};
+keyMap[37] = 'left';
+keyMap[38] = 'up';
+keyMap[39] = 'right';
+keyMap[40] = 'down';
+
 let app = createApp({
   data() {
     var sizeAimMap = [];
@@ -25,22 +50,22 @@ let app = createApp({
     return {
       boardSizePx: defBoardSizePx,
       size: defSize,
-      sizes: sizes,
-      sizeAimMap: sizeAimMap,
+      sizes,
+      sizeAimMap,
       gameStarted: false,
       gameEnded: false,
       gameAim: sizeAimMap[defSize],
       gameAimReached: false,
       score: 0,
       scoreInc: '',
-      bestScore: bestScore,
-      awards: awards,
+      bestScore,
+      awards,
     };
   },
-  created: function () {
+  created() {
     this.loadState();
   },
-  mounted: function () {
+  mounted() {
     var self = this;
     requestAnimationFrame(function () {
       self.fitBoardSizePx();
@@ -49,6 +74,8 @@ let app = createApp({
         self.showCollectAllAwards();
       });
     });
+    // TIP: 开机自启
+    self.startGame();
   },
   computed: {
     gameOverStyle: function () {
@@ -116,6 +143,7 @@ let app = createApp({
   watch: {
     size: function () {
       this.gameEnded = false;
+      console.log(this.size, this.gameEnded);
     },
   },
   methods: {
@@ -241,24 +269,6 @@ app.component('game2048-award', {
     likeStyle: { type: Object },
   },
 });
-
-var fontSizeCoefs = [1, 1, 0.8, 0.65, 0.5, 0.4, 0.35, 0.32];
-var backColors = [];
-backColors[2] = '#87E293';
-backColors[4] = '#87E273';
-backColors[8] = '#eecf40';
-backColors[16] = '#ffaa4f';
-backColors[64] = '#9ebbee';
-backColors[32] = '#6bcae2';
-backColors[128] = 'white';
-var colors = [];
-colors[2] = 'white';
-colors[4] = 'white';
-colors[8] = 'white';
-colors[16] = 'white';
-colors[32] = 'white';
-colors[64] = 'white';
-colors[128] = '#2c3e50';
 
 app.component('game2048-chip', {
   template: '#game2048-chip',
@@ -387,12 +397,6 @@ function createSwipeListener(onSwipe) {
   };
 }
 
-var keyMap = {};
-keyMap[37] = 'left';
-keyMap[38] = 'up';
-keyMap[39] = 'right';
-keyMap[40] = 'down';
-
 app.component('game2048', {
   template: '#game2048',
   props: {
@@ -467,6 +471,10 @@ app.component('game2048', {
       var game = createGame2048(this.size);
       for (var i = Math.max(2, this.size - 2); i > 0; i--) {
         var chips = game.turn();
+        if (!chips) {
+          console.error('no chips 0');
+          return;
+        }
         this.addChips(chips);
       }
       var doGameMove = this.createGameMove(game);
@@ -515,6 +523,10 @@ app.component('game2048', {
         if (boardChanges.moves.length > 0) {
           for (var i = Math.max(1, self.size - 3); i > 0; i--) {
             var chips = game.turn();
+            if (!chips) {
+              console.error('no chips 1');
+              return;
+            }
             chips.push.apply(newChips, chips);
           }
           if (boardChanges.scoreInc > 0) {
@@ -552,10 +564,12 @@ app.component('game2048', {
         chips[0].value = c.value;
       });
     },
+
     moveChips: function (moves) {
       for (var i = 0; i < moves.length; i++)
         this.moveChip(moves[i].from, moves[i].to);
     },
+
     moveChip: function (from, to) {
       var fcell = this.getCell(from);
       var fcellEl = this.getCellEl(from);
